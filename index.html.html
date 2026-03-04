@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Estadística & Probabilidad</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #04080f;
+    --surface: #0a1628;
+    --card: #0f2040;
+    --border: #1a3a6e;
+    --accent: #1e6fff;
+    --accent2: #00c6ff;
+    --accent3: #4facfe;
+    --text: #e8f0fe;
+    --muted: #7a9cc4;
+    --success: #00e5a0;
+    --warn: #ffd166;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;min-height:100vh;overflow-x:hidden}
+
+  /* BG grid */
+  body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(30,111,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(30,111,255,.04) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+
+  header{position:relative;z-index:10;padding:2.5rem 2rem 1.5rem;text-align:center;background:linear-gradient(180deg,rgba(10,22,40,1) 0%,rgba(4,8,15,0) 100%)}
+  header h1{font-size:clamp(1.6rem,4vw,2.8rem);font-weight:700;background:linear-gradient(90deg,#fff,var(--accent3),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.02em}
+  header p{color:var(--muted);font-size:.9rem;margin-top:.4rem;font-weight:300}
+
+  nav{display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem;padding:1rem 1rem 1.5rem;position:relative;z-index:10}
+  nav button{background:var(--surface);border:1px solid var(--border);color:var(--muted);padding:.5rem 1.1rem;border-radius:999px;cursor:pointer;font-family:'Sora',sans-serif;font-size:.82rem;font-weight:600;transition:all .2s}
+  nav button:hover,nav button.active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 0 16px rgba(30,111,255,.4)}
+
+  .section{display:none;animation:fadeUp .35s ease}
+  .section.active{display:block}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+  .container{max-width:1100px;margin:0 auto;padding:1rem 1.2rem 4rem;position:relative;z-index:5}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;margin-bottom:1.4rem}
+  .card h2{font-size:1.1rem;font-weight:700;color:var(--accent3);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+  .card h2 span{background:var(--accent);color:#fff;width:28px;height:28px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.75rem}
+
+  label{display:block;font-size:.8rem;color:var(--muted);margin-bottom:.3rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+  textarea,input[type=text],input[type=number],select{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:.7rem .9rem;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:.85rem;outline:none;transition:border .2s}
+  textarea:focus,input:focus,select:focus{border-color:var(--accent)}
+  textarea{resize:vertical;min-height:80px}
+
+  .btn{display:inline-flex;align-items:center;gap:.5rem;padding:.6rem 1.3rem;border-radius:10px;border:none;cursor:pointer;font-family:'Sora',sans-serif;font-weight:700;font-size:.85rem;transition:all .2s}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(30,111,255,.4)}
+  .btn-secondary{background:var(--surface);border:1px solid var(--border);color:var(--text)}
+  .btn-secondary:hover{border-color:var(--accent);color:var(--accent2)}
+  .btn-success{background:linear-gradient(135deg,#00b894,#00e5a0);color:#04080f}
+  .btn-warn{background:linear-gradient(135deg,#e67e22,var(--warn));color:#04080f}
+
+  .row{display:flex;gap:1rem;flex-wrap:wrap}
+  .col{flex:1;min-width:180px}
+
+  .result-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.1rem;margin-top:.8rem}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.8rem;margin-top:.8rem}
+  .stat-item{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:.9rem;text-align:center}
+  .stat-item .val{font-size:1.5rem;font-weight:700;color:var(--accent2);font-family:'JetBrains Mono',monospace}
+  .stat-item .lbl{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:.2rem}
+
+  table{width:100%;border-collapse:collapse;font-size:.83rem;margin-top:.8rem}
+  th{background:var(--accent);color:#fff;padding:.6rem .8rem;text-align:left;font-weight:600}
+  td{padding:.55rem .8rem;border-bottom:1px solid var(--border)}
+  tr:nth-child(even) td{background:rgba(30,111,255,.04)}
+  tr:hover td{background:rgba(30,111,255,.08)}
+
+  canvas{max-width:100%;border-radius:12px;margin-top:.8rem}
+  .chart-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-top:.8rem}
+
+  .tree-svg{width:100%;overflow:auto;margin-top:.8rem;background:var(--surface);border-radius:12px;border:1px solid var(--border)}
+
+  .set-display{font-family:'JetBrains Mono',monospace;font-size:.9rem;padding:.7rem 1rem;background:var(--surface);border-radius:10px;border:1px solid var(--border);margin-top:.5rem;word-break:break-all;color:var(--accent2)}
+
+  .tag{display:inline-block;padding:.25rem .65rem;border-radius:6px;font-size:.75rem;font-weight:700;margin:.15rem}
+  .tag-blue{background:rgba(30,111,255,.2);color:var(--accent3);border:1px solid var(--accent)}
+  .tag-green{background:rgba(0,229,160,.15);color:var(--success);border:1px solid var(--success)}
+  .tag-warn{background:rgba(255,209,102,.15);color:var(--warn);border:1px solid var(--warn)}
+
+  .msg{padding:.7rem 1rem;border-radius:10px;font-size:.85rem;margin-top:.6rem}
+  .msg-info{background:rgba(30,111,255,.15);border:1px solid var(--accent);color:var(--accent3)}
+  .msg-success{background:rgba(0,229,160,.12);border:1px solid var(--success);color:var(--success)}
+  .msg-error{background:rgba(255,80,80,.12);border:1px solid #ff5050;color:#ff9090}
+
+  .divider{border:none;border-top:1px solid var(--border);margin:1rem 0}
+
+  @media(max-width:600px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📊 Estadística & Probabilidad</h1>
+  <p>Aplicación Web Interactiva · Probabilidad y Estadística</p>
+</header>
+
+<nav>
+  <button class="active" onclick="show('datos')">📥 Datos</button>
+  <button onclick="show('estadisticos')">📈 Estadísticos</button>
+  <button onclick="show('frecuencias')">📋 Frecuencias</button>
+  <button onclick="show('graficas')">📊 Gráficas</button>
+  <button onclick="show('conjuntos')">🔵 Conjuntos</button>
+  <button onclick="show('probabilidad')">🎲 Probabilidad</button>
+  <button onclick="show('multiplicativa')">🌳 Árbol</button>
+  <button onclick="show('combinatoria')">🔢 Combinatoria</button>
+</nav>
+
+<div class="container">
+
+<!-- ===== DATOS ===== -->
+<div id="sec-datos" class="section active">
+  <div class="card">
+    <h2><span>1</span> Ingresar datos manualmente</h2>
+    <label>Escribe números separados por comas (mínimo 20)</label>
+    <textarea id="manualInput" placeholder="Ej: 12, 45, 23, 67, 34, 89, 11, 56, 78, 23, 44, 90, 15, 62, 37, 58, 29, 71, 48, 33"></textarea>
+    <div style="margin-top:.8rem;display:flex;gap:.6rem;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="cargarManual()">✓ Cargar datos</button>
+      <button class="btn btn-secondary" onclick="limpiarDatos()">✕ Limpiar</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span>2</span> Generar datos aleatorios</h2>
+    <div class="row">
+      <div class="col"><label>Cantidad</label><input type="number" id="randN" value="30" min="20" max="200"/></div>
+      <div class="col"><label>Mínimo</label><input type="number" id="randMin" value="1"/></div>
+      <div class="col"><label>Máximo</label><input type="number" id="randMax" value="100"/></div>
+      <div class="col"><label>Decimales</label>
+        <select id="randDec">
+          <option value="0">Sin decimales</option>
+          <option value="1">1 decimal</option>
+          <option value="2">2 decimales</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-success" style="margin-top:.8rem" onclick="generarAleatorios()">🎲 Generar aleatorios</button>
+  </div>
+
+  <div class="card" id="datos-preview" style="display:none">
+    <h2><span>✓</span> Datos cargados</h2>
+    <div id="datos-info" class="msg msg-success"></div>
+    <div id="datos-tags" style="margin-top:.7rem"></div>
+  </div>
+</div>
+
+<!-- ===== ESTADÍSTICOS ===== -->
+<div id="sec-estadisticos" class="section">
+  <div class="card">
+    <h2><span>📈</span> Medidas estadísticas</h2>
+    <button class="btn btn-primary" onclick="calcularEstadisticos()">Calcular</button>
+    <div class="stat-grid" id="stat-grid"></div>
+  </div>
+  <div class="card" id="moda-card" style="display:none">
+    <h2><span>M</span> Moda(s)</h2>
+    <div id="moda-result"></div>
+  </div>
+</div>
+
+<!-- ===== FRECUENCIAS ===== -->
+<div id="sec-frecuencias" class="section">
+  <div class="card">
+    <h2><span>📋</span> Tabla de frecuencias</h2>
+    <div class="row" style="margin-bottom:.8rem">
+      <div class="col"><label>Número de clases (k)</label><input type="number" id="numClases" value="7" min="3" max="20"/></div>
+    </div>
+    <button class="btn btn-primary" onclick="calcularFrecuencias()">Generar tabla</button>
+    <div id="freq-table"></div>
+  </div>
+</div>
+
+<!-- ===== GRÁFICAS ===== -->
+<div id="sec-graficas" class="section">
+  <div class="card">
+    <h2><span>📊</span> Histograma</h2>
+    <button class="btn btn-primary" onclick="graficarHistograma()">Generar</button>
+    <div class="chart-wrap"><canvas id="chartHistograma"></canvas></div>
+  </div>
+  <div class="card">
+    <h2><span>〰</span> Polígono de frecuencias</h2>
+    <button class="btn btn-primary" onclick="graficarPoligono()">Generar</button>
+    <div class="chart-wrap"><canvas id="chartPoligono"></canvas></div>
+  </div>
+  <div class="card">
+    <h2><span>S</span> Ojiva (Frecuencia acumulada)</h2>
+    <button class="btn btn-primary" onclick="graficarOjiva()">Generar</button>
+    <div class="chart-wrap"><canvas id="chartOjiva"></canvas></div>
+  </div>
+  <div class="card">
+    <h2><span>P</span> Diagrama de Pareto</h2>
+    <label>Categorías (nombre:valor, separados por comas)</label>
+    <input type="text" id="paretoInput" value="Defecto A:45, Defecto B:30, Defecto C:15, Defecto D:7, Defecto E:3"/>
+    <button class="btn btn-primary" style="margin-top:.6rem" onclick="graficarPareto()">Generar</button>
+    <div class="chart-wrap"><canvas id="chartPareto"></canvas></div>
+  </div>
+</div>
+
+<!-- ===== CONJUNTOS ===== -->
+<div id="sec-conjuntos" class="section">
+  <div class="card">
+    <h2><span>🔵</span> Operaciones con conjuntos</h2>
+    <div class="row">
+      <div class="col"><label>Conjunto A (separado por comas)</label><input type="text" id="setA" value="1,2,3,4,5,6"/></div>
+      <div class="col"><label>Conjunto B (separado por comas)</label><input type="text" id="setB" value="4,5,6,7,8,9"/></div>
+    </div>
+    <div class="col" style="margin-top:.6rem"><label>Universo U (separado por comas)</label><input type="text" id="setU" value="1,2,3,4,5,6,7,8,9,10"/></div>
+    <button class="btn btn-primary" style="margin-top:.8rem" onclick="calcularConjuntos()">Calcular operaciones</button>
+    <div id="conjuntos-result"></div>
+  </div>
+  <div class="card" style="display:none" id="venn-card">
+    <h2><span>◎</span> Diagrama de Venn</h2>
+    <div class="chart-wrap"><canvas id="chartVenn"></canvas></div>
+  </div>
+</div>
+
+<!-- ===== PROBABILIDAD ===== -->
+<div id="sec-probabilidad" class="section">
+  <div class="card">
+    <h2><span>🎲</span> Probabilidad clásica</h2>
+    <div class="row">
+      <div class="col"><label>Casos favorables</label><input type="number" id="probFav" value="3" min="0"/></div>
+      <div class="col"><label>Total de casos posibles</label><input type="number" id="probTotal" value="10" min="1"/></div>
+    </div>
+    <button class="btn btn-primary" style="margin-top:.8rem" onclick="calcularProb()">Calcular</button>
+    <div id="prob-result"></div>
+  </div>
+  <hr class="divider"/>
+  <div class="card">
+    <h2><span>P</span> Probabilidad con conjuntos</h2>
+    <div class="row">
+      <div class="col"><label>P(A) — entre 0 y 1</label><input type="number" id="pA" value="0.4" step="0.01" min="0" max="1"/></div>
+      <div class="col"><label>P(B) — entre 0 y 1</label><input type="number" id="pB" value="0.3" step="0.01" min="0" max="1"/></div>
+      <div class="col"><label>P(A∩B)</label><input type="number" id="pAB" value="0.1" step="0.01" min="0" max="1"/></div>
+    </div>
+    <button class="btn btn-primary" style="margin-top:.8rem" onclick="calcularProbConjuntos()">Calcular</button>
+    <div id="prob-conj-result"></div>
+  </div>
+</div>
+
+<!-- ===== ÁRBOL ===== -->
+<div id="sec-multiplicativa" class="section">
+  <div class="card">
+    <h2><span>🌳</span> Regla multiplicativa y diagrama de árbol</h2>
+    <div class="row">
+      <div class="col">
+        <label>Evento 1 (opciones separadas por comas)</label>
+        <input type="text" id="ev1" value="Cara, Cruz"/>
+      </div>
+      <div class="col">
+        <label>Evento 2 (opciones separadas por comas)</label>
+        <input type="text" id="ev2" value="1, 2, 3, 4, 5, 6"/>
+      </div>
+    </div>
+    <label style="margin-top:.6rem">Evento 3 (opcional)</label>
+    <input type="text" id="ev3" placeholder="Ej: Rojo, Azul, Verde"/>
+    <button class="btn btn-primary" style="margin-top:.8rem" onclick="generarArbol()">Generar árbol</button>
+    <div id="arbol-result"></div>
+    <div class="tree-svg" id="tree-svg-wrap"></div>
+  </div>
+</div>
+
+<!-- ===== COMBINATORIA ===== -->
+<div id="sec-combinatoria" class="section">
+  <div class="card">
+    <h2><span>🔢</span> Permutaciones y Combinaciones</h2>
+    <div class="row">
+      <div class="col"><label>n (total de elementos)</label><input type="number" id="combN" value="10" min="0"/></div>
+      <div class="col"><label>r (elementos a elegir)</label><input type="number" id="combR" value="3" min="0"/></div>
+    </div>
+    <button class="btn btn-primary" style="margin-top:.8rem" onclick="calcularCombinaciones()">Calcular</button>
+    <div id="comb-result"></div>
+  </div>
+  <div class="card">
+    <h2><span>!</span> Factorial</h2>
+    <div class="row">
+      <div class="col"><label>n</label><input type="number" id="factN" value="6" min="0" max="20"/></div>
+    </div>
+    <button class="btn btn-primary" style="margin-top:.8rem" onclick="calcularFactorial()">Calcular n!</button>
+    <div id="fact-result"></div>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+/* ========== STATE ========== */
+let DATOS = [];
+let chartInstances = {};
+
+function show(sec) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-' + sec).classList.add('active');
+  event.target.classList.add('active');
+}
+
+/* ========== DATOS ========== */
+function cargarManual() {
+  const raw = document.getElementById('manualInput').value;
+  const nums = raw.split(',').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
+  if (nums.length < 20) { alert('⚠ Ingresa al menos 20 datos numéricos.'); return; }
+  DATOS = nums;
+  mostrarDatos('manual', nums);
+}
+
+function generarAleatorios() {
+  const n = parseInt(document.getElementById('randN').value) || 30;
+  const mn = parseFloat(document.getElementById('randMin').value) || 1;
+  const mx = parseFloat(document.getElementById('randMax').value) || 100;
+  const dec = parseInt(document.getElementById('randDec').value);
+  if (n < 20) { alert('Mínimo 20 datos.'); return; }
+  DATOS = Array.from({length: n}, () => {
+    const v = Math.random() * (mx - mn) + mn;
+    return parseFloat(v.toFixed(dec));
+  });
+  document.getElementById('manualInput').value = DATOS.join(', ');
+  mostrarDatos('aleatorio', DATOS);
+}
+
+function mostrarDatos(tipo, nums) {
+  document.getElementById('datos-preview').style.display = 'block';
+  document.getElementById('datos-info').textContent = `✓ ${nums.length} datos cargados (${tipo})`;
+  const wrap = document.getElementById('datos-tags');
+  wrap.innerHTML = nums.map((v,i) => `<span class="tag tag-blue">${i+1}. ${v}</span>`).join('');
+}
+
+function limpiarDatos() {
+  DATOS = [];
+  document.getElementById('manualInput').value = '';
+  document.getElementById('datos-preview').style.display = 'none';
+}
+
+/* ========== ESTADÍSTICOS ========== */
+function media(d) { return d.reduce((a,b)=>a+b,0)/d.length; }
+function mediana(d) {
+  const s = [...d].sort((a,b)=>a-b);
+  const m = Math.floor(s.length/2);
+  return s.length%2 ? s[m] : (s[m-1]+s[m])/2;
+}
+function moda(d) {
+  const freq = {};
+  d.forEach(v => freq[v] = (freq[v]||0)+1);
+  const max = Math.max(...Object.values(freq));
+  return Object.keys(freq).filter(k=>freq[k]===max).map(Number);
+}
+function suma(d) { return d.reduce((a,b)=>a+b,0); }
+function varianza(d) {
+  const m = media(d);
+  return d.reduce((a,b)=>a+(b-m)**2,0)/d.length;
+}
+function desviacion(d) { return Math.sqrt(varianza(d)); }
+
+function calcularEstadisticos() {
+  if (!DATOS.length) { alert('Primero carga datos en la sección "Datos".'); return; }
+  const d = DATOS;
+  const s = [...d].sort((a,b)=>a-b);
+  const med = media(d), mdn = mediana(d), mo = moda(d);
+  const mn = s[0], mx = s[s.length-1], rng = mx - mn;
+  const v = varianza(d), dev = desviacion(d);
+
+  const grid = document.getElementById('stat-grid');
+  const items = [
+    ['Media (x̄)', med.toFixed(4)],
+    ['Mediana', mdn.toFixed(4)],
+    ['Mínimo', mn],
+    ['Máximo', mx],
+    ['Rango', rng.toFixed(4)],
+    ['Varianza', v.toFixed(4)],
+    ['Desv. estándar', dev.toFixed(4)],
+    ['n (datos)', d.length],
+    ['Suma', suma(d).toFixed(4)],
+  ];
+  grid.innerHTML = items.map(([l,v]) => `
+    <div class="stat-item">
+      <div class="val">${v}</div>
+      <div class="lbl">${l}</div>
+    </div>`).join('');
+
+  document.getElementById('moda-card').style.display = 'block';
+  document.getElementById('moda-result').innerHTML =
+    mo.map(m => `<span class="tag tag-green">${m}</span>`).join(' ') +
+    `<div class="msg msg-info" style="margin-top:.6rem">
+      ${mo.length === d.length ? 'Sin moda (todos los valores se repiten igual número de veces)' :
+        mo.length > 1 ? `Distribución multimodal (${mo.length} modas)` : 'Distribución unimodal'}
+    </div>`;
+}
+
+/* ========== FRECUENCIAS ========== */
+function getClases(k) {
+  const s = [...DATOS].sort((a,b)=>a-b);
+  const mn = s[0], mx = s[s.length-1];
+  const amp = (mx - mn) / k;
+  const clases = [];
+  for (let i=0;i<k;i++) {
+    const li = mn + i*amp;
+    const ls = li + amp;
+    const marca = (li + ls)/2;
+    const fi = DATOS.filter(v => i<k-1 ? v>=li && v<ls : v>=li && v<=ls).length;
+    clases.push({li:+li.toFixed(4), ls:+ls.toFixed(4), marca:+marca.toFixed(4), fi});
+  }
+  let Fi=0, total=DATOS.length;
+  clases.forEach(c => { Fi+=c.fi; c.Fi=Fi; c.fr=+(c.fi/total).toFixed(4); c.Fr=+(c.Fi/total).toFixed(4); });
+  return clases;
+}
+
+function calcularFrecuencias() {
+  if (!DATOS.length) { alert('Primero carga datos.'); return; }
+  const k = parseInt(document.getElementById('numClases').value) || 7;
+  const clases = getClases(k);
+  let html = `<table><thead><tr>
+    <th>Clase</th><th>Límite inf.</th><th>Límite sup.</th><th>Marca</th>
+    <th>fi</th><th>fr</th><th>Fi</th><th>Fr</th>
+  </tr></thead><tbody>`;
+  clases.forEach((c,i) => {
+    html += `<tr>
+      <td>${i+1}</td><td>${c.li}</td><td>${c.ls}</td><td>${c.marca}</td>
+      <td><strong>${c.fi}</strong></td><td>${c.fr}</td><td>${c.Fi}</td><td>${c.Fr}</td>
+    </tr>`;
+  });
+  html += `<tr><td colspan="4"><strong>Total</strong></td>
+    <td><strong>${DATOS.length}</strong></td><td><strong>1.0000</strong></td>
+    <td>—</td><td><strong>1.0000</strong></td></tr></tbody></table>`;
+  document.getElementById('freq-table').innerHTML = html;
+}
+
+/* ========== GRÁFICAS ========== */
+const CHART_OPTS = {
+  plugins:{legend:{labels:{color:'#e8f0fe',font:{family:'Sora'}}}},
+  scales:{
+    x:{ticks:{color:'#7a9cc4'},grid:{color:'rgba(30,111,255,.1)'}},
+    y:{ticks:{color:'#7a9cc4'},grid:{color:'rgba(30,111,255,.1)'}}
+  }
+};
+
+function destroyChart(id) {
+  if (chartInstances[id]) { chartInstances[id].destroy(); delete chartInstances[id]; }
+}
+
+function graficarHistograma() {
+  if (!DATOS.length) { alert('Carga datos primero.'); return; }
+  const k = parseInt(document.getElementById('numClases').value) || 7;
+  const clases = getClases(k);
+  destroyChart('histograma');
+  const ctx = document.getElementById('chartHistograma').getContext('2d');
+  chartInstances['histograma'] = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: clases.map(c=>`[${c.li}-${c.ls})`),
+      datasets:[{label:'Frecuencia absoluta (fi)',data:clases.map(c=>c.fi),
+        backgroundColor:'rgba(30,111,255,.7)',borderColor:'#00c6ff',borderWidth:2,borderRadius:6}]
+    },
+    options:{...CHART_OPTS, plugins:{...CHART_OPTS.plugins, title:{display:true,text:'Histograma',color:'#e8f0fe'}},
+      barPercentage:1, categoryPercentage:1}
+  });
+}
+
+function graficarPoligono() {
+  if (!DATOS.length) { alert('Carga datos primero.'); return; }
+  const k = parseInt(document.getElementById('numClases').value) || 7;
+  const clases = getClases(k);
+  destroyChart('poligono');
+  const ctx = document.getElementById('chartPoligono').getContext('2d');
+  chartInstances['poligono'] = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels: clases.map(c=>c.marca),
+      datasets:[{label:'Polígono de frecuencias',data:clases.map(c=>c.fi),
+        borderColor:'#4facfe',backgroundColor:'rgba(79,172,254,.15)',tension:.4,
+        pointBackgroundColor:'#00c6ff',pointRadius:5,fill:true}]
+    },
+    options:{...CHART_OPTS}
+  });
+}
+
+function graficarOjiva() {
+  if (!DATOS.length) { alert('Carga datos primero.'); return; }
+  const k = parseInt(document.getElementById('numClases').value) || 7;
+  const clases = getClases(k);
+  destroyChart('ojiva');
+  const ctx = document.getElementById('chartOjiva').getContext('2d');
+  chartInstances['ojiva'] = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels: clases.map(c=>c.ls),
+      datasets:[{label:'Ojiva (Fr acumulada)',data:clases.map(c=>c.Fr),
+        borderColor:'#00e5a0',backgroundColor:'rgba(0,229,160,.12)',tension:.4,
+        pointBackgroundColor:'#00e5a0',pointRadius:5,fill:true}]
+    },
+    options:{...CHART_OPTS}
+  });
+}
+
+function graficarPareto() {
+  const raw = document.getElementById('paretoInput').value;
+  const pairs = raw.split(',').map(p=>{
+    const [n,v] = p.trim().split(':');
+    return {nombre:n?.trim()||'?', valor:parseFloat(v)||0};
+  }).filter(p=>p.valor>0).sort((a,b)=>b.valor-a.valor);
+  const total = pairs.reduce((s,p)=>s+p.valor,0);
+  let acc=0;
+  const acum = pairs.map(p=>{ acc+=p.valor; return +(acc/total*100).toFixed(1); });
+  destroyChart('pareto');
+  const ctx = document.getElementById('chartPareto').getContext('2d');
+  chartInstances['pareto'] = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: pairs.map(p=>p.nombre),
+      datasets:[
+        {type:'bar',label:'Frecuencia',data:pairs.map(p=>p.valor),
+          backgroundColor:'rgba(30,111,255,.7)',borderColor:'#00c6ff',borderWidth:2,yAxisID:'y'},
+        {type:'line',label:'% Acumulado',data:acum,
+          borderColor:'#ffd166',backgroundColor:'transparent',
+          pointBackgroundColor:'#ffd166',tension:.3,yAxisID:'y2'}
+      ]
+    },
+    options:{
+      plugins:{legend:{labels:{color:'#e8f0fe'}}},
+      scales:{
+        x:{ticks:{color:'#7a9cc4'},grid:{color:'rgba(30,111,255,.1)'}},
+        y:{ticks:{color:'#7a9cc4'},grid:{color:'rgba(30,111,255,.1)'},position:'left'},
+        y2:{ticks:{color:'#ffd166',callback:v=>v+'%'},grid:{display:false},
+          position:'right',min:0,max:100}
+      }
+    }
+  });
+}
+
+/* ========== CONJUNTOS ========== */
+function parseSet(id) {
+  return [...new Set(document.getElementById(id).value.split(',')
+    .map(x=>x.trim()).filter(x=>x!==''))];
+}
+
+function calcularConjuntos() {
+  const A = parseSet('setA');
+  const B = parseSet('setB');
+  const U = parseSet('setU');
+
+  const union = [...new Set([...A,...B])];
+  const inter = A.filter(x=>B.includes(x));
+  const difAB = A.filter(x=>!B.includes(x));
+  const difBA = B.filter(x=>!A.includes(x));
+  const compA = U.filter(x=>!A.includes(x));
+  const compB = U.filter(x=>!B.includes(x));
+  const difSim = [...difAB,...difBA];
+
+  const fmt = arr => arr.length ? '{'+arr.join(', ')+'}' : '∅';
+
+  document.getElementById('conjuntos-result').innerHTML = `
+    <div class="result-box" style="margin-top:.8rem">
+      <div style="margin-bottom:.5rem"><span class="tag tag-blue">A</span> ${fmt(A)}</div>
+      <div style="margin-bottom:.5rem"><span class="tag tag-blue">B</span> ${fmt(B)}</div>
+      <div style="margin-bottom:.5rem"><span class="tag tag-blue">U</span> ${fmt(U)}</div>
+      <hr class="divider"/>
+      <div style="margin-bottom:.5rem"><span class="tag tag-green">A ∪ B</span> ${fmt(union)}</div>
+      <div style="margin-bottom:.5rem"><span class="tag tag-green">A ∩ B</span> ${fmt(inter)}</div>
+      <div style="margin-bottom:.5rem"><span class="tag tag-warn">A - B</span> ${fmt(difAB)}</div>
+      <div style="margin-bottom:.5rem"><span class="tag tag-warn">B - A</span> ${fmt(difBA)}</div>
+      <div style="margin-bottom:.5rem"><span class="tag tag-warn">A △ B (Dif. simétrica)</span> ${fmt(difSim)}</div>
+      <div style="margin-bottom:.5rem"><span class="tag tag-blue">A' (complemento)</span> ${fmt(compA)}</div>
+      <div style="margin-bottom:.5rem"><span class="tag tag-blue">B' (complemento)</span> ${fmt(compB)}</div>
+      <div style="margin-bottom:.3rem"><strong>|A|</strong> = ${A.length} &nbsp; <strong>|B|</strong> = ${B.length} &nbsp; <strong>|A∪B|</strong> = ${union.length} &nbsp; <strong>|A∩B|</strong> = ${inter.length}</div>
+    </div>`;
+}
+
+/* ========== PROBABILIDAD ========== */
+function calcularProb() {
+  const fav = parseFloat(document.getElementById('probFav').value);
+  const tot = parseFloat(document.getElementById('probTotal').value);
+  if (tot===0) { alert('El total no puede ser 0.'); return; }
+  const p = fav/tot;
+  const q = 1-p;
+  document.getElementById('prob-result').innerHTML = `
+    <div class="stat-grid">
+      <div class="stat-item"><div class="val">${fav}</div><div class="lbl">Casos favorables</div></div>
+      <div class="stat-item"><div class="val">${tot}</div><div class="lbl">Casos posibles</div></div>
+      <div class="stat-item"><div class="val">${p.toFixed(6)}</div><div class="lbl">P(E) = ${fav}/${tot}</div></div>
+      <div class="stat-item"><div class="val">${(p*100).toFixed(2)}%</div><div class="lbl">Porcentaje</div></div>
+      <div class="stat-item"><div class="val">${q.toFixed(6)}</div><div class="lbl">P(E') = complemento</div></div>
+    </div>
+    <div class="msg msg-info" style="margin-top:.7rem">
+      P(E) + P(E') = ${p.toFixed(4)} + ${q.toFixed(4)} = ${(p+q).toFixed(4)} ✓
+    </div>`;
+}
+
+function calcularProbConjuntos() {
+  const pA = parseFloat(document.getElementById('pA').value);
+  const pB = parseFloat(document.getElementById('pB').value);
+  const pAB = parseFloat(document.getElementById('pAB').value);
+  const pAuB = pA + pB - pAB;
+  const pBdadoA = pAB/pA;
+  const pAdadoB = pAB/pB;
+  const indep = Math.abs(pAB - pA*pB) < 0.0001;
+  document.getElementById('prob-conj-result').innerHTML = `
+    <div class="stat-grid" style="margin-top:.8rem">
+      <div class="stat-item"><div class="val">${pAuB.toFixed(4)}</div><div class="lbl">P(A ∪ B)</div></div>
+      <div class="stat-item"><div class="val">${pAB.toFixed(4)}</div><div class="lbl">P(A ∩ B)</div></div>
+      <div class="stat-item"><div class="val">${pBdadoA.toFixed(4)}</div><div class="lbl">P(B|A)</div></div>
+      <div class="stat-item"><div class="val">${pAdadoB.toFixed(4)}</div><div class="lbl">P(A|B)</div></div>
+      <div class="stat-item"><div class="val">${(1-pA).toFixed(4)}</div><div class="lbl">P(A')</div></div>
+      <div class="stat-item"><div class="val">${(1-pB).toFixed(4)}</div><div class="lbl">P(B')</div></div>
+    </div>
+    <div class="msg ${indep?'msg-success':'msg-info'}" style="margin-top:.7rem">
+      ${indep ? '✓ A y B son <strong>independientes</strong> (P(A∩B) = P(A)·P(B))' :
+        '⚠ A y B son <strong>dependientes</strong> (P(A∩B) ≠ P(A)·P(B) = '+((pA*pB).toFixed(4))+')'}
+    </div>`;
+}
+
+/* ========== ÁRBOL ========== */
+function generarArbol() {
+  const ev1 = document.getElementById('ev1').value.split(',').map(x=>x.trim()).filter(Boolean);
+  const ev2 = document.getElementById('ev2').value.split(',').map(x=>x.trim()).filter(Boolean);
+  const ev3raw = document.getElementById('ev3').value.trim();
+  const ev3 = ev3raw ? ev3raw.split(',').map(x=>x.trim()).filter(Boolean) : [];
+
+  let ramas = [];
+  ev1.forEach(a => {
+    ev2.forEach(b => {
+      if (ev3.length) {
+        ev3.forEach(c => ramas.push([a,b,c]));
+      } else {
+        ramas.push([a,b]);
+      }
+    });
+  });
+
+  const total = ramas.length;
+  const probRama = (1/ev1.length) * (1/ev2.length) * (ev3.length?1/ev3.length:1);
+
+  document.getElementById('arbol-result').innerHTML = `
+    <div class="msg msg-success" style="margin-top:.8rem">
+      Espacio muestral: <strong>${total} resultado${total>1?'s':''}</strong> |
+      P(cada rama) = ${probRama.toFixed(6)} ≈ 1/${total}
+    </div>
+    <div style="margin-top:.6rem;max-height:200px;overflow:auto">
+      ${ramas.map((r,i)=>`<span class="tag tag-blue">${i+1}. (${r.join(', ')})</span>`).join('')}
+    </div>`;
+
+  // SVG tree
+  drawTree(ev1, ev2, ev3);
+}
+
+function drawTree(ev1, ev2, ev3) {
+  const W = 700, rowH = 40;
+  const total = ev1.length * ev2.length * (ev3.length||1);
+  const H = Math.max(200, total * rowH + 80);
+  const cols = ev3.length ? [80, 250, 420, 600] : [80, 280, 500];
+
+  let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;font-family:Sora,sans-serif">
+    <rect width="${W}" height="${H}" fill="#0a1628" rx="12"/>`;
+
+  // labels
+  const colLabels = ev3.length ? ['Inicio','E1','E2','E3'] : ['Inicio','E1','E2'];
+  colLabels.forEach((l,i)=>{
+    svg+=`<text x="${cols[i]}" y="24" fill="#7a9cc4" font-size="12" text-anchor="middle" font-weight="600">${l}</text>`;
+  });
+
+  const rootY = H/2;
+  svg+=`<circle cx="${cols[0]}" cy="${rootY}" r="8" fill="#1e6fff"/>`;
+  svg+=`<text x="${cols[0]-14}" y="${rootY+4}" fill="#e8f0fe" font-size="11" text-anchor="end">Inicio</text>`;
+
+  let leafIdx = 0;
+  ev1.forEach((a, ai) => {
+    const ev1Count = ev2.length * (ev3.length||1);
+    const y1 = (ai * ev1Count + ev1Count/2) * rowH + 50;
+    svg+=`<line x1="${cols[0]}" y1="${rootY}" x2="${cols[1]}" y2="${y1}" stroke="#1e6fff" stroke-width="1.5" opacity=".6"/>`;
+    svg+=`<circle cx="${cols[1]}" cy="${y1}" r="6" fill="#4facfe"/>`;
+    svg+=`<text x="${cols[1]}" y="${y1-10}" fill="#e8f0fe" font-size="11" text-anchor="middle">${a}</text>`;
+
+    ev2.forEach((b, bi) => {
+      const ev2Count = ev3.length||1;
+      const y2 = (ai*ev1Count + bi*ev2Count + ev2Count/2)*rowH+50;
+      svg+=`<line x1="${cols[1]}" y1="${y1}" x2="${cols[2]}" y2="${y2}" stroke="#00c6ff" stroke-width="1.5" opacity=".6"/>`;
+      svg+=`<circle cx="${cols[2]}" cy="${y2}" r="5" fill="#00c6ff"/>`;
+      svg+=`<text x="${cols[2]}" y="${y2-9}" fill="#e8f0fe" font-size="10" text-anchor="middle">${b}</text>`;
+
+      if (ev3.length) {
+        ev3.forEach((c,ci) => {
+          const y3 = leafIdx*rowH+50+rowH/2;
+          svg+=`<line x1="${cols[2]}" y1="${y2}" x2="${cols[3]}" y2="${y3}" stroke="#00e5a0" stroke-width="1.2" opacity=".5"/>`;
+          svg+=`<circle cx="${cols[3]}" cy="${y3}" r="4" fill="#00e5a0"/>`;
+          svg+=`<text x="${cols[3]+10}" y="${y3+4}" fill="#00e5a0" font-size="9">(${a},${b},${c})</text>`;
+          leafIdx++;
+        });
+      } else {
+        const y3 = leafIdx*rowH+50+rowH/2;
+        svg+=`<text x="${cols[2]+10}" y="${y2+4}" fill="#00e5a0" font-size="9">(${a},${b})</text>`;
+        leafIdx++;
+      }
+    });
+  });
+
+  svg+='</svg>';
+  document.getElementById('tree-svg-wrap').innerHTML = svg;
+}
+
+/* ========== COMBINATORIA ========== */
+function factorial(n) {
+  if (n<0) return NaN;
+  if (n===0||n===1) return 1;
+  let r=1; for(let i=2;i<=n;i++) r*=i; return r;
+}
+
+function calcularCombinaciones() {
+  const n = parseInt(document.getElementById('combN').value);
+  const r = parseInt(document.getElementById('combR').value);
+  if (r>n) { alert('r no puede ser mayor que n.'); return; }
+  const P = factorial(n)/factorial(n-r);
+  const C = factorial(n)/(factorial(r)*factorial(n-r));
+  const PR = factorial(n); // permutación total
+  document.getElementById('comb-result').innerHTML = `
+    <div class="stat-grid" style="margin-top:.8rem">
+      <div class="stat-item">
+        <div class="val">${P.toLocaleString()}</div>
+        <div class="lbl">P(${n},${r}) Permutación</div>
+      </div>
+      <div class="stat-item">
+        <div class="val">${C.toLocaleString()}</div>
+        <div class="lbl">C(${n},${r}) Combinación</div>
+      </div>
+      <div class="stat-item">
+        <div class="val">${PR.toLocaleString()}</div>
+        <div class="lbl">${n}! Permutación total</div>
+      </div>
+    </div>
+    <div class="result-box" style="margin-top:.8rem;font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--muted);line-height:1.9">
+      P(n,r) = n! / (n−r)! = ${n}! / ${n-r}! = <strong style="color:var(--accent3)">${P.toLocaleString()}</strong><br/>
+      C(n,r) = n! / r!(n−r)! = ${n}! / (${r}! × ${n-r}!) = <strong style="color:var(--success)">${C.toLocaleString()}</strong><br/>
+      Relación: P(n,r) = C(n,r) × r! → ${C.toLocaleString()} × ${factorial(r)} = ${P.toLocaleString()}
+    </div>`;
+}
+
+function calcularFactorial() {
+  const n = parseInt(document.getElementById('factN').value);
+  const f = factorial(n);
+  let pasos = Array.from({length:n},(_, i)=>i+1).join(' × ');
+  if (n===0) pasos = '1 (por definición)';
+  document.getElementById('fact-result').innerHTML = `
+    <div class="stat-item" style="margin-top:.8rem;text-align:center">
+      <div class="val">${f.toLocaleString()}</div>
+      <div class="lbl">${n}!</div>
+    </div>
+    <div class="result-box" style="margin-top:.7rem;font-family:'JetBrains Mono',monospace;font-size:.85rem;color:var(--muted)">
+      ${n}! = ${pasos} = <strong style="color:var(--accent3)">${f.toLocaleString()}</strong>
+    </div>`;
+}
+</script>
+</body>
+</html>
