@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Probabilidad y Estadística Interactiva</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Probabilidad y Estadística</h1>
+        <p>Herramienta Integral de Análisis de Datos</p>
+    </header>
+
+    <main class="container">
+        <!-- Sección de Entrada de Datos -->
+        <section class="card" id="data-input">
+            <h2><i class="icon">📊</i> Entrada de Datos</h2>
+            <div class="input-group">
+                <label for="manual-data">Ingreso Manual (separado por comas):</label>
+                <textarea id="manual-data" placeholder="Ej: 10, 20, 15, ... (Mínimo 20 datos)"></textarea>
+            </div>
+            <div class="button-row">
+                <button id="btn-process-manual" class="btn-primary">Procesar Manual</button>
+                <button id="btn-generate-random" class="btn-secondary">Generar 20 Aleatorios</button>
+                <button id="btn-clear" class="btn-danger">Limpiar Todo</button>
+            </div>
+        </section>
+
+        <!-- Resultados Estadísticos -->
+        <section class="grid-2">
+            <div class="card" id="stats-summary">
+                <h2><i class="icon">🔢</i> Medidas de Tendencia</h2>
+                <div id="stats-output" class="stats-list">
+                    <p>Esperando datos...</p>
+                </div>
+            </div>
+            <div class="card" id="frequency-table-section">
+                <h2><i class="icon">📋</i> Tabla de Frecuencias</h2>
+                <div class="table-container">
+                    <table id="frequency-table">
+                        <thead>
+                            <tr>
+                                <th>Clase/Dato</th>
+                                <th>fi</th>
+                                <th>fr</th>
+                                <th>Fi</th>
+                                <th>Fr</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gráficos -->
+        <section class="card">
+            <h2><i class="icon">📈</i> Visualizaciones</h2>
+            <div class="tabs">
+                <button class="tab-link active" onclick="showChart('histogram')">Histograma y Polígono</button>
+                <button class="tab-link" onclick="showChart('ojiva')">Ojiva</button>
+                <button class="tab-link" onclick="showChart('pareto')">Pareto</button>
+            </div>
+            <div class="chart-container">
+                <canvas id="mainChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Operaciones Avanzadas -->
+        <section class="grid-2">
+            <!-- Conjuntos y Probabilidad -->
+            <div class="card">
+                <h2><i class="icon">🧪</i> Conjuntos y Probabilidad</h2>
+                <div class="input-group">
+                    <label>Conjunto A (comas):</label>
+                    <input type="text" id="set-a" placeholder="1,2,3">
+                    <label>Conjunto B (comas):</label>
+                    <input type="text" id="set-b" placeholder="3,4,5">
+                </div>
+                <button onclick="calculateSets()" class="btn-small">Calcular Operaciones</button>
+                <div id="set-results" class="results-box"></div>
+                
+                <hr>
+                
+                <h3>Probabilidad Básica</h3>
+                <div class="input-group">
+                    <label>Eventos favorables:</label>
+                    <input type="number" id="prob-fav">
+                    <label>Espacio muestral:</label>
+                    <input type="number" id="prob-total">
+                </div>
+                <button onclick="calculateBasicProb()" class="btn-small">Calcular P(A)</button>
+                <p id="prob-result"></p>
+            </div>
+
+            <!-- Combinatoria y Árbol -->
+            <div class="card">
+                <h2><i class="icon">🌳</i> Combinatoria y Regla Multiplicativa</h2>
+                <div class="input-group">
+                    <label>n (total):</label>
+                    <input type="number" id="comb-n">
+                    <label>r (muestra):</label>
+                    <input type="number" id="comb-r">
+                </div>
+                <div class="button-row">
+                    <button onclick="calculatePerm()" class="btn-small">Permutación (nPr)</button>
+                    <button onclick="calculateComb()" class="btn-small">Combinación (nCr)</button>
+                </div>
+                <p id="comb-results"></p>
+
+                <hr>
+
+                <h3>Diagrama de Árbol (Lógica)</h3>
+                <div class="input-group">
+                    <label>Etapas (ej: 2,3 para 2 ramas luego 3):</label>
+                    <input type="text" id="tree-stages" placeholder="2,2">
+                </div>
+                <button onclick="generateTreeText()" class="btn-small">Simular Árbol</button>
+                <div id="tree-output" class="tree-display"></div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Aplicación de Probabilidad y Estadística</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
